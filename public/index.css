@@ -1,0 +1,15 @@
+.page {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.horse {
+    position: absolute;
+    left: 400px;
+    top: 400px;
+    width: 380.5px;
+    height: 250px;
+}
