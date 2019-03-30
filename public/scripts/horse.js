@@ -1,3 +1,6 @@
+const horseWidth = 380.5;
+const horseHeight = 250;
+
 addEventListener('mousemove', function(event) {
     moveTo(event.clientX, event.clientY)
 }, false);
@@ -10,6 +13,28 @@ addEventListener('touchmove', function(event) {
 }, false);
 
 function moveTo(x, y) {
+    x -= horseWidth / 2;
+    y -= horseHeight / 2;
+
+    const page = document.getElementsByClassName('page')[0];
+    const rect = page.getBoundingClientRect();
+
+    if (x > rect.width - horseWidth) {
+        x = rect.width - horseWidth;
+    }
+
+    if (x < 0) {
+        x = 0;
+    }
+
+    if (y >= rect.height - horseHeight) {
+        y = rect.height - horseHeight - 1;
+    }
+
+    if (y < 0) {
+        y = 0;
+    }
+
     const horse = document.getElementsByClassName('horse')[0];
     horse.style.left = x + 'px';
     horse.style.top = y + 'px';
