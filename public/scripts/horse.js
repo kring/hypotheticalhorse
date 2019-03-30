@@ -1,8 +1,19 @@
 addEventListener('mousemove', function(event) {
-    const horse = document.getElementsByClassName('horse')[0];
-    horse.style.left = event.clientX + 'px';
-    horse.style.top = event.clientY + 'px';
+    moveTo(event.clientX, event.clientY)
 }, false);
+
+addEventListener('touchmove', function(event) {
+    const touches = event.touches;
+    const touch = touches[0];
+    moveTo(touch.clientX, touch.clientY)
+    event.stopPropagation();
+}, false);
+
+function moveTo(x, y) {
+    const horse = document.getElementsByClassName('horse')[0];
+    horse.style.left = x + 'px';
+    horse.style.top = y + 'px';
+}
 
 const colors = [
     'pink',
