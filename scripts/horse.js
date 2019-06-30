@@ -12,6 +12,25 @@ addEventListener('touchmove', function(event) {
     event.stopPropagation();
 }, false);
 
+const horseNeighSound = 'sounds/Horse Neigh-SoundBible.com-1740540960.wav';
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+
+const neigh = document.getElementById('neigh');
+const track = audioContext.createMediaElementSource(neigh);
+track.connect(audioContext.destination);
+
+addEventListener('click', function(event) {
+    // check if context is in suspended state (autoplay policy)
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+
+    // play or pause track depending on state
+    neigh.play();
+}, false);
+
 function moveTo(x, y) {
     x -= horseWidth / 2;
     y -= horseHeight / 2;
