@@ -21,14 +21,23 @@ const neigh = document.getElementById('neigh');
 const track = audioContext.createMediaElementSource(neigh);
 track.connect(audioContext.destination);
 
+const eatAudioContext = new AudioContext();
+const eat = document.getElementById('eat');
+const eatTrack = eatAudioContext.createMediaElementSource(eat);
+eatTrack.connect(eatAudioContext.destination);
+
 addEventListener('click', function(event) {
     // check if context is in suspended state (autoplay policy)
     if (audioContext.state === 'suspended') {
         audioContext.resume();
     }
+    if (eatAudioContext.state === 'suspended') {
+        eatAudioContext.resume();
+    }
 
     // play or pause track depending on state
     neigh.play();
+    eat.play();
 }, false);
 
 let horseX;
@@ -113,19 +122,29 @@ const startTime = performance.now();
 
 const obstacles = [];
 const obstacleDomElements = [];
+const isSquid = [];
+
+let score = 0;
 
 function createLevel() {
     
-    const numberOfMoons = 18;
+    const numberOfMoons = 20;
     for (let i = 0; i < numberOfMoons; ++i) {
-        const x = (width - 150) * Math.random() - height * 9;
+        const x = (width - 150) * Math.random() - height * 10;
         const y = (height - 158) * Math.random();
 
         const obstacle = document.createElement("div");
         obstacle.className = "obstacle";
         obstacle.style.left = x + 'px';
         obstacle.style.top = y + 'px';
-        obstacle.innerHTML = '<img width="150" src="images/moon-small.png" />';
+        if ((i % 2) === 0) {
+            isSquid.push(false);
+            obstacle.innerHTML = '<img width="150" src="images/moon-small.png" />';
+        } else {
+            isSquid.push(true);
+            obstacle.innerHTML = '<img width="150" src="images/Squid-PNG-Transparent-Background.png" />';
+
+        }
         obstacleDomElements.push(obstacle);
         obstacles.push([x, y]);
         page.appendChild(obstacle);
@@ -134,28 +153,40 @@ function createLevel() {
 
 createLevel();
 
+function updateScore() {
+    const scoreElement = document.getElementById('score');
+    scoreElement.innerText = score.toString();
+}
+
+updateScore();
+
 function run() {
     const currentTime = performance.now() - startTime;
-    const currentLevelPosition = (currentTime / 2) % levelWidth;
+    const currentLevelPosition = (currentTime / 1.10) % (levelWidth + page.clientWidth);
+
+    const buffer = 40;
 
     const horseRectangle = {
-        minX: horseX,
-        minY: horseY,
-        maxX: horseX + horseWidth,
-        maxY: horseY + horseHeight
+        minX: horseX + buffer,
+        minY: horseY + buffer,
+        maxX: horseX + horseWidth - buffer,
+        maxY: horseY + horseHeight - buffer
     };
 
     for (let i = 0; i < obstacles.length; ++i) {
         const obstacle = obstacles[i];
+        if (!obstacle) {
+            continue;
+        }
         const domElement = obstacleDomElements[i];
         const newPosition = obstacle[0] + currentLevelPosition;
         domElement.style.left = newPosition + "px";
 
         const obstacleRectangle = {
-            minX: newPosition,
-            minY: obstacle[1],
-            maxX: newPosition + 150,
-            maxY: obstacle[1] + 157
+            minX: newPosition + buffer,
+            minY: obstacle[1] + buffer,
+            maxX: newPosition + 150 - buffer,
+            maxY: obstacle[1] + 157 - buffer
         };
 
         const intersection = {
@@ -167,7 +198,15 @@ function run() {
 
         if (intersection.minX < intersection.maxX && intersection.minY < intersection.maxY) {
             // Collision!
-            neigh.play();
+            if (isSquid[i]) {
+                eat.play();
+                domElement.parentElement.removeChild(domElement);
+                obstacles[i] = undefined;
+                score = score + 10;
+                updateScore();
+            } else {
+                neigh.play();
+            }
         }
     }
     
