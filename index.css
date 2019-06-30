@@ -5,6 +5,7 @@
     bottom: 0;
     left: 0;
     right: 0;
+    overflow: hidden;
 }
 
 .horse {
@@ -13,4 +14,25 @@
     top: 400px;
     width: 380.5px;
     height: 250px;
+}
+
+.obstacle {
+    position: absolute;
+    left: 100px;
+    top: 100px;
+}
+
+#score {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: pink;
+    color: black;
+    border: 4px solid purple;
+    padding: 5px;
+    width: 70px;
+    height: 20px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 20px;
 }
