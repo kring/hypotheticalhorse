@@ -122,14 +122,13 @@ const startTime = performance.now();
 
 const obstacles = [];
 const obstacleDomElements = [];
-const isSquid = [];
+const types = [];
 
 let score = 0;
+let lives = 3;
 
 function createLevel() {
-    
-    const numberOfMoons = 20;
-    for (let i = 0; i < numberOfMoons; ++i) {
+    function create(imageUrl, type) {
         const x = (width - 150) * Math.random() - height * 10;
         const y = (height - 158) * Math.random();
 
@@ -137,28 +136,49 @@ function createLevel() {
         obstacle.className = "obstacle";
         obstacle.style.left = x + 'px';
         obstacle.style.top = y + 'px';
-        if ((i % 2) === 0) {
-            isSquid.push(false);
-            obstacle.innerHTML = '<img width="150" src="images/moon-small.png" />';
-        } else {
-            isSquid.push(true);
-            obstacle.innerHTML = '<img width="150" src="images/Squid-PNG-Transparent-Background.png" />';
 
-        }
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.width = 150;
+        obstacle.appendChild(image);
+
         obstacleDomElements.push(obstacle);
         obstacles.push([x, y]);
+        types.push(type);
+
         page.appendChild(obstacle);
-    }    
+    }
+
+    const numberOfObstacles = 10;
+    for (let i = 0; i < numberOfObstacles; ++i) {
+        create("images/moon-small.png", "obstacle");
+    }
+
+    const numberOfFood = 10;
+    for (let i = 0; i < numberOfFood; ++i) {
+        create("images/Squid-PNG-Transparent-Background.png", "food");
+    }
+
+    const numberOfLives = 5;
+    for (let i = 0; i < numberOfLives; ++i) {
+        create("images/bike.png", "life");
+    }
 }
 
 createLevel();
 
 function updateScore() {
     const scoreElement = document.getElementById('score');
-    scoreElement.innerText = score.toString();
+    scoreElement.innerText = "SCORE: " + score;
+}
+
+function updateLives() {
+    const element = document.getElementById('lives');
+    element.innerText = "LIVES: " + lives;
 }
 
 updateScore();
+updateLives();
 
 function run() {
     const currentTime = performance.now() - startTime;
@@ -198,14 +218,19 @@ function run() {
 
         if (intersection.minX < intersection.maxX && intersection.minY < intersection.maxY) {
             // Collision!
-            if (isSquid[i]) {
+            if (types[i] === "food") {
                 eat.play();
                 domElement.parentElement.removeChild(domElement);
                 obstacles[i] = undefined;
                 score = score + 10;
                 updateScore();
-            } else {
+            } else if (types[i] === "obstacle") {
                 neigh.play();
+            } else if (types[i] === "life") {
+                domElement.parentElement.removeChild(domElement);
+                obstacles[i] = undefined;
+                ++lives;
+                updateLives();
             }
         }
     }
