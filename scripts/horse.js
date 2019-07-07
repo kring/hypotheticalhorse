@@ -118,7 +118,7 @@ const height = page.clientHeight;
 const width = height * 10;
 
 const levelWidth = width;
-const startTime = performance.now();
+let startTime = performance.now();
 
 const obstacles = [];
 const obstacleDomElements = [];
@@ -126,6 +126,8 @@ const types = [];
 
 let score = 0;
 let lives = 3;
+let safeFromMoons = false;
+let level = 1;
 
 function createLevel() {
     function create(imageUrl, type) {
@@ -149,7 +151,7 @@ function createLevel() {
         page.appendChild(obstacle);
     }
 
-    const numberOfObstacles = 10;
+    const numberOfObstacles = 10 + 5 * level;
     for (let i = 0; i < numberOfObstacles; ++i) {
         create("images/moon-small.png", "obstacle");
     }
@@ -165,7 +167,24 @@ function createLevel() {
     }
 }
 
+function clearLevel() {
+    const obstaclesElements = document.getElementsByClassName("obstacle");
+    
+    while (obstaclesElements.length > 0) {
+        obstaclesElements[0].parentElement.removeChild(obstaclesElements[0]);
+    }
+
+    obstacles.length = 0;
+    obstacleDomElements.length = 0;
+    types.length = 0;
+}
+
 createLevel();
+
+function updateLevel() {
+    const element = document.getElementById('level');
+    element.innerText = "LEVEL: " + level;
+}
 
 function updateScore() {
     const scoreElement = document.getElementById('score');
@@ -177,12 +196,23 @@ function updateLives() {
     element.innerText = "LIVES: " + lives;
 }
 
+updateLevel();
 updateScore();
 updateLives();
 
 function run() {
     const currentTime = performance.now() - startTime;
-    const currentLevelPosition = (currentTime / 1.10) % (levelWidth + page.clientWidth);
+    let currentLevelPosition = (currentTime / (Math.max(1.5 - level * 0.2, 0.5)));
+    
+    if (currentLevelPosition > levelWidth + page.clientWidth) {
+        ++level;
+        updateLevel();
+        startTime = performance.now();
+        currentLevelPosition = 0;
+
+        clearLevel();
+        createLevel();
+    }
 
     const buffer = 40;
 
@@ -225,7 +255,21 @@ function run() {
                 score = score + 10;
                 updateScore();
             } else if (types[i] === "obstacle") {
-                neigh.play();
+                if (!safeFromMoons) {
+                    neigh.play();
+                    --lives;
+                    updateLives();
+
+                    if (lives === 0) {
+                        document.getElementById("gameover").style.display = "block";
+                        return;
+                    }
+
+                    safeFromMoons = true;
+                    setTimeout(() => {
+                        safeFromMoons = false;
+                    }, 1000)
+                }
             } else if (types[i] === "life") {
                 domElement.parentElement.removeChild(domElement);
                 obstacles[i] = undefined;
