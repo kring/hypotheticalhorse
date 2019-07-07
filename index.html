@@ -20,7 +20,16 @@
             <div class="horse">
                 <img width="380.5" height="250" src="images/horse.gif" />
             </div>
-            <div id="score">SCORE</div>
+            <div id="scoreboard">
+                <div id="level">LEVEL</div>
+                <div id="score">SCORE</div>
+                <div id="lives">LIVES</div>
+            </div>
+            <div id="gameover">
+                <h1>GAME OVER</h1>
+                <p>Want to continue horsing around?</p>
+                <button onclick="document.location.reload()">Refresh the page</button>
+            </div>
         </div>
         <script src="scripts/horse.js"></script>
     </body>

@@ -118,18 +118,19 @@ const height = page.clientHeight;
 const width = height * 10;
 
 const levelWidth = width;
-const startTime = performance.now();
+let startTime = performance.now();
 
 const obstacles = [];
 const obstacleDomElements = [];
-const isSquid = [];
+const types = [];
 
 let score = 0;
+let lives = 3;
+let safeFromMoons = false;
+let level = 1;
 
 function createLevel() {
-    
-    const numberOfMoons = 20;
-    for (let i = 0; i < numberOfMoons; ++i) {
+    function create(imageUrl, type) {
         const x = (width - 150) * Math.random() - height * 10;
         const y = (height - 158) * Math.random();
 
@@ -137,32 +138,81 @@ function createLevel() {
         obstacle.className = "obstacle";
         obstacle.style.left = x + 'px';
         obstacle.style.top = y + 'px';
-        if ((i % 2) === 0) {
-            isSquid.push(false);
-            obstacle.innerHTML = '<img width="150" src="images/moon-small.png" />';
-        } else {
-            isSquid.push(true);
-            obstacle.innerHTML = '<img width="150" src="images/Squid-PNG-Transparent-Background.png" />';
 
-        }
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.width = 150;
+        obstacle.appendChild(image);
+
         obstacleDomElements.push(obstacle);
         obstacles.push([x, y]);
+        types.push(type);
+
         page.appendChild(obstacle);
-    }    
+    }
+
+    const numberOfObstacles = 10 + 5 * level;
+    for (let i = 0; i < numberOfObstacles; ++i) {
+        create("images/moon-small.png", "obstacle");
+    }
+
+    const numberOfFood = 10;
+    for (let i = 0; i < numberOfFood; ++i) {
+        create("images/Squid-PNG-Transparent-Background.png", "food");
+    }
+
+    const numberOfLives = 5;
+    for (let i = 0; i < numberOfLives; ++i) {
+        create("images/bike.png", "life");
+    }
+}
+
+function clearLevel() {
+    const obstaclesElements = document.getElementsByClassName("obstacle");
+    
+    while (obstaclesElements.length > 0) {
+        obstaclesElements[0].parentElement.removeChild(obstaclesElements[0]);
+    }
+
+    obstacles.length = 0;
+    obstacleDomElements.length = 0;
+    types.length = 0;
 }
 
 createLevel();
 
-function updateScore() {
-    const scoreElement = document.getElementById('score');
-    scoreElement.innerText = score.toString();
+function updateLevel() {
+    const element = document.getElementById('level');
+    element.innerText = "LEVEL: " + level;
 }
 
+function updateScore() {
+    const scoreElement = document.getElementById('score');
+    scoreElement.innerText = "SCORE: " + score;
+}
+
+function updateLives() {
+    const element = document.getElementById('lives');
+    element.innerText = "LIVES: " + lives;
+}
+
+updateLevel();
 updateScore();
+updateLives();
 
 function run() {
     const currentTime = performance.now() - startTime;
-    const currentLevelPosition = (currentTime / 1.10) % (levelWidth + page.clientWidth);
+    let currentLevelPosition = (currentTime / (Math.max(1.5 - level * 0.2, 0.5)));
+    
+    if (currentLevelPosition > levelWidth + page.clientWidth) {
+        ++level;
+        updateLevel();
+        startTime = performance.now();
+        currentLevelPosition = 0;
+
+        clearLevel();
+        createLevel();
+    }
 
     const buffer = 40;
 
@@ -198,14 +248,33 @@ function run() {
 
         if (intersection.minX < intersection.maxX && intersection.minY < intersection.maxY) {
             // Collision!
-            if (isSquid[i]) {
+            if (types[i] === "food") {
                 eat.play();
                 domElement.parentElement.removeChild(domElement);
                 obstacles[i] = undefined;
                 score = score + 10;
                 updateScore();
-            } else {
-                neigh.play();
+            } else if (types[i] === "obstacle") {
+                if (!safeFromMoons) {
+                    neigh.play();
+                    --lives;
+                    updateLives();
+
+                    if (lives === 0) {
+                        document.getElementById("gameover").style.display = "block";
+                        return;
+                    }
+
+                    safeFromMoons = true;
+                    setTimeout(() => {
+                        safeFromMoons = false;
+                    }, 1000)
+                }
+            } else if (types[i] === "life") {
+                domElement.parentElement.removeChild(domElement);
+                obstacles[i] = undefined;
+                ++lives;
+                updateLives();
             }
         }
     }
